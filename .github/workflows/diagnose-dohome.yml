@@ -7,25 +7,24 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Inspect DoHome bundles
+      - name: Inspect all DoHome chunks
         run: |
           python - <<'PY'
           import requests,re
-          base="https://www.dohome.co.th"
-          u=base+"/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99"
+          base="https://www.dohome.co.th"; u=base+"/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99"
           h=requests.get(u,headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
           scripts=re.findall(r'<script[^>]+src=["\x27]([^"\x27]+)',h,re.I)
-          print("HTML",len(h),"scripts",len(scripts))
           for s in scripts:
-            if "search/page-" not in s: continue
             js=requests.get(base+s,headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
-            print("SEARCH_BUNDLE",s,"LEN",len(js))
-            for pat in [r'https?://[^"\x27 ]+',r'["\x27]([^"\x27]{0,80}(?:search|product|graphql|api)[^"\x27]{0,120})["\x27]']:
-              for m in re.findall(pat,js,re.I):
-                print("MATCH",m[:400])
-            open("search-bundle.js","w").write(js)
+            hits=[]
+            for key in ["PRODUCT.PRODUCT","NEXT_PUBLIC","baseURL","/api/","graphql","search?","SEARCH"]:
+              p=0
+              while True:
+                p=js.find(key,p)
+                if p<0: break
+                hits.append((key,p,js[max(0,p-350):p+650]))
+                p+=len(key)
+            if hits:
+              print("\n### CHUNK",s,"LEN",len(js))
+              for key,p,ctx in hits[:20]: print("\nKEY",key,"POS",p,"CTX",ctx[:1000])
           PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dohome-search-bundle
-          path: search-bundle.js

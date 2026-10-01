@@ -7,22 +7,15 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Test public DoHome search request
+      - name: Verify deployed Auto Discovery
         run: |
           python - <<'PY'
-          import requests,re,time,hmac,hashlib
-          site="https://www.dohome.co.th"; h=requests.get(site+"/search?q=test",headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
-          scripts=re.findall(r'<script[^>]+src=["\x27]([^"\x27]+)',h,re.I)
-          cfg=None
-          for s in scripts:
-            js=requests.get(site+s,headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
-            m=re.search(r'baseUrl:"([^"]+)",appKey:"([^"]+)",appId:"([^"]+)"',js)
-            if m: cfg=m.groups(); break
-          assert cfg,"public web config not found"
-          host,key,appid=cfg; path="/products"; ts=str(int(time.time()*1000))
-          raw=path+"appId"+appid+"timestamp"+ts
-          sig=hmac.new(("INT8xDOHOME-"+key).encode(),raw.encode(),hashlib.sha256).hexdigest().upper()
-          headers={"Content-Type":"application/json","platform":"web","appId":appid,"timestamp":ts,"sign":sig,"lang":"th"}
-          r=requests.get(host+path,params={"page":1,"limit":20,"search_input":"ปูน"},headers=headers,timeout=30)
-          print("STATUS",r.status_code,"LEN",len(r.text)); print(r.text[:12000])
+          import requests
+          endpoint="https://hintbcyjdctjyyqtoice.supabase.co/functions/v1/collect-price"
+          url="https://www.dohome.co.th/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99"
+          r=requests.post(endpoint,json={"action":"preview","url":url},timeout=90)
+          print("STATUS",r.status_code)
+          d=r.json(); print("OK",d.get("ok"),"QUERY",d.get("query"),"COUNT",d.get("count"),"TOTAL",d.get("total"))
+          for x in (d.get("items") or [])[:3]: print(x.get("sourceSku"),x.get("sourceName"),x.get("regularPrice"),x.get("promoPrice"),x.get("rawDetails",{}).get("brand"))
+          if r.status_code!=200: print(d); raise SystemExit(1)
           PY

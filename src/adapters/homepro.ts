@@ -1,0 +1,1 @@
+import type { SourceAdapter,NormalizedListing } from "./types";export const homeproAdapter:SourceAdapter={code:"homepro",supports:url=>url.includes("homepro.co.th"),async fetchProduct(_url:string):Promise<NormalizedListing>{throw new Error("HomePro adapter pending source-access validation.")}};

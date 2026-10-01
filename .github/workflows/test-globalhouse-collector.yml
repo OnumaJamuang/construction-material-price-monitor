@@ -1,0 +1,13 @@
+name: Test Global House Collector
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/test-globalhouse-collector.yml"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test live collector
+        run: |
+          curl -sS -X POST 'https://hintbcyjdctjyyqtoice.supabase.co/functions/v1/collect-globalhouse' -H 'Content-Type: application/json' --data '{"action":"preview","url":"https://globalhouse.co.th/search?keyword=%E0%B8%9B%E0%B8%B9%E0%B8%99"}' -o /tmp/out.json
+          python -c 'import json; d=json.load(open("/tmp/out.json")); print("OK",d.get("ok"),"COUNT",d.get("count"),"DEBUG",d.get("debug")); print([(x.get("sourceSku"),x.get("sourceName"),x.get("currentPrice"),x.get("regularPrice"),x.get("rawDetails",{}).get("brand")) for x in d.get("items",[])[:8]]); assert d.get("ok") is True; assert d.get("count",0)>0; assert all(x.get("sourceName") and x.get("currentPrice") and x.get("productUrl","").startswith("https://globalhouse.co.th/product/") for x in d.get("items",[]))'

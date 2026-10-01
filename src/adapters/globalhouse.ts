@@ -1,0 +1,1 @@
+import type { SourceAdapter,NormalizedListing } from "./types";export const globalHouseAdapter:SourceAdapter={code:"globalhouse",supports:url=>url.includes("globalhouse.co.th"),async fetchProduct(_url:string):Promise<NormalizedListing>{throw new Error("Global House adapter pending source-access validation.")}};

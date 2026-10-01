@@ -7,15 +7,14 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify deployed Auto Discovery
+      - name: Verify pagination
         run: |
           python - <<'PY'
           import requests
-          endpoint="https://hintbcyjdctjyyqtoice.supabase.co/functions/v1/collect-price"
-          url="https://www.dohome.co.th/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99"
-          r=requests.post(endpoint,json={"action":"preview","url":url},timeout=90)
-          print("STATUS",r.status_code)
-          d=r.json(); print("OK",d.get("ok"),"QUERY",d.get("query"),"COUNT",d.get("count"),"TOTAL",d.get("total"))
-          for x in (d.get("items") or [])[:3]: print(x.get("sourceSku"),x.get("sourceName"),x.get("regularPrice"),x.get("promoPrice"),x.get("rawDetails",{}).get("brand"))
-          if r.status_code!=200: print(d); raise SystemExit(1)
+          ep="https://hintbcyjdctjyyqtoice.supabase.co/functions/v1/collect-price"; u="https://www.dohome.co.th/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99"
+          a=requests.post(ep,json={"action":"preview","url":u,"page":1,"limit":60},timeout=90).json()
+          b=requests.post(ep,json={"action":"preview","url":u,"page":2,"limit":60},timeout=90).json()
+          print("P1",a.get("count"),a.get("total"),a.get("hasMore"));print("P2",b.get("count"),b.get("total"),b.get("hasMore"))
+          print("UNIQUE",len(set([x["sourceSku"] for x in a.get("items",[])+b.get("items",[])])))
+          assert a.get("count")==60 and b.get("count")==43 and len(set([x["sourceSku"] for x in a["items"]+b["items"]]))==103
           PY

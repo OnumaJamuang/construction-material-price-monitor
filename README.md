@@ -37,3 +37,12 @@
 ระบบจะเก็บ SKU, ชื่อสินค้า, แบรนด์, หมวดหมู่, หน่วยขาย, รายละเอียด, specification, URL, รูปภาพ, ราคาปัจจุบัน, ราคาปกติ/โปรโมชั่น, สถานะสินค้า และวันเวลาที่ตรวจสอบ
 
 > หมายเหตุ: การเก็บข้อมูลจากเว็บไซต์ควรเคารพ robots.txt, terms of service, rate limits และไม่พยายามหลบ CAPTCHA หรือระบบป้องกันการใช้งานอัตโนมัติ
+
+
+## สถานะล่าสุด
+- Supabase production schema: พร้อมใช้งาน
+- Sources: DoHome, HomePro, Thai Watsadu, Global House
+- DoHome product parser: implemented (JSON-LD first + HTML fallback)
+- Price history schema: พร้อมใช้งาน
+- Multi-source adapters: scaffolded
+- ขั้นถัดไป: server-side runner + deployment secrets + scheduled checks

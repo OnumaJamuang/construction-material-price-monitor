@@ -7,24 +7,20 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Inspect all DoHome chunks
+      - name: Find DoHome API host
         run: |
           python - <<'PY'
           import requests,re
-          base="https://www.dohome.co.th"; u=base+"/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99"
-          h=requests.get(u,headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
+          base="https://www.dohome.co.th"; h=requests.get(base+"/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99",headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
           scripts=re.findall(r'<script[^>]+src=["\x27]([^"\x27]+)',h,re.I)
           for s in scripts:
             js=requests.get(base+s,headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
-            hits=[]
-            for key in ["PRODUCT.PRODUCT","NEXT_PUBLIC","baseURL","/api/","graphql","search?","SEARCH"]:
-              p=0
-              while True:
-                p=js.find(key,p)
-                if p<0: break
-                hits.append((key,p,js[max(0,p-350):p+650]))
-                p+=len(key)
-            if hits:
-              print("\n### CHUNK",s,"LEN",len(js))
-              for key,p,ctx in hits[:20]: print("\nKEY",key,"POS",p,"CTX",ctx[:1000])
+            if "54742:" in js or "axios" in js.lower() or "apiUrl" in js or "API_URL" in js or "dohome.co.th/api" in js:
+              print("\n###",s,"LEN",len(js))
+              for key in ["54742:","axios","baseURL","apiUrl","API_URL","NEXT_PUBLIC","dohome.co.th"]:
+                p=0
+                while True:
+                  p=js.find(key,p)
+                  if p<0: break
+                  print("KEY",key,"CTX",js[max(0,p-500):p+1000][:1500]);p+=len(key)
           PY

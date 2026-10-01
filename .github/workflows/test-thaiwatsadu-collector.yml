@@ -1,0 +1,13 @@
+name: Test Thai Watsadu Collector
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/test-thaiwatsadu-collector.yml"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test live collector
+        run: |
+          curl -sS -X POST 'https://hintbcyjdctjyyqtoice.supabase.co/functions/v1/collect-thaiwatsadu' -H 'Content-Type: application/json' --data '{"action":"preview","url":"https://www.thaiwatsadu.com/search/%E0%B8%9B%E0%B8%B9%E0%B8%99"}' -o /tmp/out.json
+          python -c 'import json; d=json.load(open("/tmp/out.json")); print("OK",d.get("ok"),"COUNT",d.get("count"),"DEBUG",d.get("debug")); print([(x.get("sourceSku"),x.get("sourceName"),x.get("currentPrice"),x.get("regularPrice")) for x in d.get("items",[])[:5]]); assert d.get("ok") is True; assert d.get("count",0)>0'

@@ -7,20 +7,22 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Find DoHome API host
+      - name: Test public DoHome search request
         run: |
           python - <<'PY'
-          import requests,re
-          base="https://www.dohome.co.th"; h=requests.get(base+"/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99",headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
+          import requests,re,time,hmac,hashlib
+          site="https://www.dohome.co.th"; h=requests.get(site+"/search?q=test",headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
           scripts=re.findall(r'<script[^>]+src=["\x27]([^"\x27]+)',h,re.I)
+          cfg=None
           for s in scripts:
-            js=requests.get(base+s,headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
-            if "54742:" in js or "axios" in js.lower() or "apiUrl" in js or "API_URL" in js or "dohome.co.th/api" in js:
-              print("\n###",s,"LEN",len(js))
-              for key in ["54742:","axios","baseURL","apiUrl","API_URL","NEXT_PUBLIC","dohome.co.th"]:
-                p=0
-                while True:
-                  p=js.find(key,p)
-                  if p<0: break
-                  print("KEY",key,"CTX",js[max(0,p-500):p+1000][:1500]);p+=len(key)
+            js=requests.get(site+s,headers={"User-Agent":"Mozilla/5.0"},timeout=30).text
+            m=re.search(r'baseUrl:"([^"]+)",appKey:"([^"]+)",appId:"([^"]+)"',js)
+            if m: cfg=m.groups(); break
+          assert cfg,"public web config not found"
+          host,key,appid=cfg; path="/products"; ts=str(int(time.time()*1000))
+          raw=path+"appId"+appid+"timestamp"+ts
+          sig=hmac.new(("INT8xDOHOME-"+key).encode(),raw.encode(),hashlib.sha256).hexdigest().upper()
+          headers={"Content-Type":"application/json","platform":"web","appId":appid,"timestamp":ts,"sign":sig,"lang":"th"}
+          r=requests.get(host+path,params={"page":1,"limit":20,"search_input":"ปูน"},headers=headers,timeout=30)
+          print("STATUS",r.status_code,"LEN",len(r.text)); print(r.text[:12000])
           PY

@@ -1,0 +1,28 @@
+name: Diagnose DoHome Search
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/diagnose-dohome.yml"
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch search page
+        run: |
+          python - <<'PY'
+          import requests,re
+          u="https://www.dohome.co.th/search?q=%E0%B8%9B%E0%B8%B9%E0%B8%99"
+          r=requests.get(u,headers={"User-Agent":"Mozilla/5.0"},timeout=30)
+          print("STATUS",r.status_code,"LEN",len(r.text),"FINAL",r.url)
+          print("SCRIPTS")
+          for x in re.findall(r'<script[^>]+src=["\x27]([^"\x27]+)',r.text,re.I): print(x)
+          print("CANDIDATES")
+          for x in sorted(set(re.findall(r'https?://[^"\x27 <]+',r.text))):
+            if any(k in x.lower() for k in ["api","search","product","graphql","algolia"]): print(x[:500])
+          open("dohome-search.html","w").write(r.text)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dohome-search-html
+          path: dohome-search.html

@@ -1,0 +1,1 @@
+import Link from "next/link";export default function Nav(){return <div className="nav"><Link href="/">Dashboard</Link><Link href="/products">สินค้า</Link><Link href="/compare">เปรียบเทียบราคา</Link><Link href="/sources">แหล่งข้อมูล</Link></div>}

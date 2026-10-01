@@ -26,3 +26,4 @@ jobs:
         with:
           name: dohome-search-html
           path: dohome-search.html
+# run diagnostic

@@ -1,0 +1,28 @@
+name: Diagnose HomePro Search
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/diagnose-homepro.yml"]
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Inspect HomePro
+        run: |
+          python - <<'PY'
+          import requests,re,json
+          u="https://www.homepro.co.th/search?searchtype=&q=%E0%B8%9B%E0%B8%B9%E0%B8%99"
+          r=requests.get(u,headers={"User-Agent":"Mozilla/5.0"},timeout=30)
+          print("STATUS",r.status_code,"LEN",len(r.text),"URL",r.url)
+          for pat in ["__NEXT_DATA__","1194065","productList","algolia","graphql"]:
+            print(pat, r.text.lower().find(pat.lower()))
+          scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)',r.text)
+          print("SCRIPTS",len(scripts)); print("\n".join(scripts[-20:]))
+          m=re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',r.text,re.S)
+          if m: print("NEXT",m.group(1)[:20000])
+          ix=r.text.find("1194065");print("SKU_SNIP",r.text[max(0,ix-4000):ix+8000] if ix>=0 else "")
+          PY

@@ -1,0 +1,1 @@
+import type { SourceAdapter,NormalizedListing } from "./types";export const thaiWatsaduAdapter:SourceAdapter={code:"thaiwatsadu",supports:url=>url.includes("thaiwatsadu.com"),async fetchProduct(_url:string):Promise<NormalizedListing>{throw new Error("Thai Watsadu adapter pending source-access validation.")}};

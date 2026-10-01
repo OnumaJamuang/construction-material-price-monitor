@@ -1,0 +1,27 @@
+name: Diagnose Thai Watsadu Search
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/diagnose-thaiwatsadu.yml"]
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install requests
+      - name: Inspect Thai Watsadu
+        run: |
+          python - <<'PY'
+          import requests,re,json
+          u="https://www.thaiwatsadu.com/search/%E0%B8%9B%E0%B8%B9%E0%B8%99"
+          r=requests.get(u,headers={"User-Agent":"Mozilla/5.0","Accept-Language":"th-TH,th;q=0.9"},timeout=30)
+          print("STATUS",r.status_code,"LEN",len(r.text),"URL",r.url)
+          for pat in ["__NEXT_DATA__","product","graphql","algolia","60192052","application/ld+json","api/"]:
+            print("PAT",pat,r.text.lower().find(pat.lower()))
+          print("SCRIPTS")
+          print("\n".join(re.findall(r'<script[^>]+src=["\\']([^"\\']+)',r.text)[-30:]))
+          for pat in ["60192052","productList","searchResult","products"]:
+            ix=r.text.find(pat)
+            if ix>=0: print("SNIP",pat,r.text[max(0,ix-3000):ix+9000])
+          PY

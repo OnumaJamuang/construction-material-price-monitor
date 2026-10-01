@@ -1,0 +1,24 @@
+name: Test HomePro Collector
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/test-homepro-collector.yml"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test live HomePro collector
+        run: |
+          python - <<'PY'
+          import json,urllib.request
+          url="https://hintbcyjdctjyyqtoice.supabase.co/functions/v1/collect-homepro"
+          body=json.dumps({"action":"preview","url":"https://www.homepro.co.th/search?searchtype=&q=ปูน"},ensure_ascii=False).encode()
+          req=urllib.request.Request(url,data=body,headers={"Content-Type":"application/json"})
+          with urllib.request.urlopen(req,timeout=60) as r: d=json.load(r)
+          print("OK",d.get("ok"),"SOURCE",d.get("source"),"COUNT",d.get("count"),"TOTAL",d.get("total"))
+          for x in d.get("items",[])[:5]: print(x.get("sourceSku"),x.get("sourceName"),x.get("regularPrice"),x.get("promoPrice"),x.get("rawDetails",{}).get("brand"))
+          assert d.get("ok") is True
+          assert d.get("source")=="homepro"
+          assert d.get("count",0)>0
+          assert all(x.get("productUrl","").startswith("https://www.homepro.co.th/p/") for x in d["items"])
+          PY

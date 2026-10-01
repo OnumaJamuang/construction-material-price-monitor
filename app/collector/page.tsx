@@ -16,17 +16,17 @@ return <div className="app"><Nav/><main className="content"><header><div><p clas
   </div>
   <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:12,marginBottom:18}}>
     {[
-      ["DoHome","https://www.dohome.co.th/search?q=ปูน"],
-      ["HomePro","https://www.homepro.co.th/search?searchtype=&q=ปูน"],
-      ["Thai Watsadu","https://www.thaiwatsadu.com/search/ปูน"],
-      ["Global House","https://globalhouse.co.th/search?keyword=ปูน"]
-    ].map(([name,example])=><div key={name} style={{padding:"14px 16px",border:"1px solid #e2e8f0",borderRadius:12,background:"#fff",minWidth:0}}>
+      ["DoHome","https://www.dohome.co.th/search?q="],
+      ["HomePro","https://www.homepro.co.th/search?searchtype=&q="],
+      ["Thai Watsadu","https://www.thaiwatsadu.com/search/"],
+      ["Global House","https://globalhouse.co.th/search?keyword="]
+    ].map(([name,base])=>{const selected=url.startsWith(base);return <button type="button" key={name} onClick={()=>{setUrl(base);setMsg("");}} style={{padding:"14px 16px",border:selected?"2px solid #2563eb":"1px solid #e2e8f0",borderRadius:12,background:selected?"#eff6ff":"#fff",minWidth:0,textAlign:"left",cursor:"pointer",color:"inherit"}}>
       <b style={{display:"block",marginBottom:5,fontSize:16}}>{name}</b>
-      <code style={{display:"block",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",fontSize:13}} title={example}>{example}</code>
-    </div>)}
+      <code style={{display:"block",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",fontSize:13}} title={base}>{base}<span style={{color:"#94a3b8"}}>คำค้น</span></code>
+    </button>})}
   </div>
   <div style={{display:"flex",gap:10,alignItems:"stretch",flexWrap:"wrap"}}>
-    <input style={{minWidth:280,flex:"1 1 620px",minHeight:48}} value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>e.key==="Enter"&&preview()} placeholder="วาง URL Search ของ DoHome, HomePro, Thai Watsadu หรือ Global House ที่นี่..."/>
+    <input style={{minWidth:280,flex:"1 1 620px",minHeight:48}} value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>e.key==="Enter"&&preview()} placeholder="เลือกร้านด้านบน แล้วพิมพ์คำค้นต่อท้าย URL เช่น ปูน"/>
     <button className="primary" style={{minHeight:48,padding:"0 24px",whiteSpace:"nowrap"}} onClick={preview} disabled={busy}>{busy?"กำลังอ่าน...":"Preview รายการ"}</button>
   </div>
 </section>{msg&&<section className="panel" style={{marginTop:16}}><b>{msg}</b></section>}{items.length>0&&<section className="panel" style={{marginTop:16}}><div className="panelHead"><div><h2>Preview สินค้า</h2><p>โหลดแล้ว {items.length} / {total||items.length} รายการ • แสดง {visible.length} รายการ • Preview: {previewAt}{savedAt&&<> • บันทึก: {savedAt}</>}</p></div><div style={{display:"flex",gap:10,flexWrap:"wrap"}}>{hasMore&&<><button onClick={loadMore} disabled={busy}>โหลดหน้าถัดไป</button><button onClick={loadAll} disabled={busy}>ดึงทั้งหมด {total} รายการ</button></>}<button onClick={downloadExcel} disabled={busy||!visible.length}>Download Excel</button><button className="primary" onClick={save} disabled={busy||!visible.length}>บันทึกที่แสดง ({visible.length})</button></div></div><div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:14}}><label><input type="checkbox" checked={discountOnly} onChange={e=>setDiscountOnly(e.target.checked)}/> เฉพาะสินค้าลดราคา</label><select value={brand} onChange={e=>setBrand(e.target.value)}><option value="">ทุกยี่ห้อ</option>{brands.map(x=><option key={x} value={x}>{x}</option>)}</select><select value={category} onChange={e=>setCategory(e.target.value)}><option value="">ทุกหมวด</option>{categories.map(x=><option key={x} value={x}>{x}</option>)}</select></div><div className="tableWrap"><table className="table"><thead><tr><th>สินค้า</th><th>ยี่ห้อ</th><th>ขนาด/รายละเอียด</th><th>รุ่น</th><th>ราคาปกติ</th><th>ราคาลด</th><th>ส่วนลด</th></tr></thead><tbody>{visible.map((x,i)=><tr key={x.productUrl+i}><td><a href={x.productUrl} target="_blank" rel="noreferrer">{x.sourceName}</a></td><td>{x.rawDetails?.brand||"—"}</td><td>{x.rawDetails?.size||x.rawDetails?.details||"—"}</td><td>{x.rawDetails?.model||x.sourceSku||"—"}</td><td>{x.regularPrice?("฿"+Number(x.regularPrice).toLocaleString("th-TH")):"—"}</td><td><b>฿{Number(x.promoPrice||x.currentPrice).toLocaleString("th-TH",{minimumFractionDigits:2})}</b></td><td>{x.regularPrice&&Number(x.regularPrice)>Number(x.promoPrice||x.currentPrice)?("฿"+(Number(x.regularPrice)-Number(x.promoPrice||x.currentPrice)).toLocaleString("th-TH")+" ("+(((Number(x.regularPrice)-Number(x.promoPrice||x.currentPrice))/Number(x.regularPrice))*100).toFixed(1)+"%)"):"—"}</td></tr>)}</tbody></table></div></section>}<section className="panel" style={{marginTop:16}}><div className="panelHead"><div><h2>วิธีใช้งาน</h2><p>1. ค้นหาสินค้าใน DoHome, HomePro, Thai Watsadu หรือ Global House → 2. Copy URL หน้าค้นหา → 3. Preview → 4. ตรวจรายการ → 5. บันทึกทั้งหมด</p></div></div></section></main></div>}
